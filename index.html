@@ -1,0 +1,858 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#4a3e86">
+<title>a nossa casa</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%8F%A1%3C/text%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;600&family=Cormorant+Garamond:ital,wght@0,400;0,500;1,400;1,500;1,600&family=Jost:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --creme:#fdf1f4;
+    --creme-suave:rgba(253,241,244,0.72);
+    --rosa:#ff9fc5;
+    --papel:#fbf5ea;
+    --tinta:#3b2833;
+    --sombra:0 2px 18px rgba(20,10,30,0.55);
+  }
+  *{ box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  html,body{ margin:0; padding:0; height:100%; overflow:hidden; background:#3a3060; }
+  body{ color:var(--creme); font-family:'Jost', system-ui, sans-serif; font-weight:300; overscroll-behavior:none; -webkit-user-select:none; user-select:none; }
+  button{ font:inherit; color:inherit; touch-action:manipulation; cursor:pointer; }
+
+  #cena{ position:fixed; top:0; left:0; width:100%; height:100vh; display:block; touch-action:none; }
+
+  /* ---------- título ---------- */
+  #topo{
+    position:fixed; left:0; right:0; top:0; z-index:4; pointer-events:none; text-align:center;
+    padding:max(20px, calc(env(safe-area-inset-top) + 10px)) 22px 0; text-shadow:var(--sombra);
+    opacity:0; transform:translateY(-6px); transition:opacity 1.4s ease, transform 1.4s ease;
+  }
+  #topo.visivel{ opacity:1; transform:none; }
+  #selo{ margin:0; font-size:0.64rem; letter-spacing:0.36em; text-transform:uppercase; color:var(--creme-suave); }
+  #titulo{ margin:0.25rem 0 0; font-family:'Cormorant Garamond', Georgia, serif; font-style:italic; font-weight:500; font-size:clamp(2.1rem, 9.5vw, 3.4rem); line-height:1.02; }
+  #subtitulo{ margin:0.45rem auto 0; max-width:28ch; font-family:'Cormorant Garamond', Georgia, serif; font-style:italic; font-size:clamp(1rem, 4.2vw, 1.25rem); line-height:1.35; color:var(--creme-suave); white-space:pre-line; }
+
+  /* ---------- nomes dos cômodos em cima das janelas ---------- */
+  #rotulos{ position:fixed; inset:0; z-index:3; pointer-events:none; }
+  .rotulo{
+    position:absolute; left:0; top:0; transform:translate(-50%, -100%); pointer-events:auto;
+    padding:6px 13px 7px; border-radius:999px; border:1px solid rgba(255,230,240,0.45);
+    background:rgba(40,24,48,0.42); -webkit-backdrop-filter:blur(8px); backdrop-filter:blur(8px);
+    font-family:'Cormorant Garamond', Georgia, serif; font-style:italic; font-size:1.02rem; white-space:nowrap;
+    opacity:0; transition:opacity 0.8s ease; box-shadow:0 4px 18px rgba(0,0,0,0.25);
+  }
+  .rotulo::after{ content:''; position:absolute; left:50%; bottom:-5px; width:8px; height:8px; margin-left:-4px; background:inherit; border-right:1px solid rgba(255,230,240,0.45); border-bottom:1px solid rgba(255,230,240,0.45); transform:rotate(45deg); -webkit-backdrop-filter:none; backdrop-filter:none; }
+  #rotulos.visivel .rotulo{ opacity:1; }
+  #rotulos.visivel .rotulo.longe{ opacity:0; pointer-events:none; }
+
+  #dica{
+    position:fixed; left:0; right:0; bottom:max(22px, calc(env(safe-area-inset-bottom) + 12px)); z-index:4; text-align:center; pointer-events:none;
+    font-size:0.68rem; letter-spacing:0.26em; text-transform:uppercase; color:var(--creme-suave); text-shadow:var(--sombra);
+    opacity:0; transition:opacity 1s;
+  }
+  #dica.visivel{ opacity:1; }
+
+  /* ---------- véu da transição (a luz da janela tomando a tela) ---------- */
+  #veu{ position:fixed; inset:0; z-index:6; pointer-events:none; opacity:0; transition:opacity 0.55s ease;
+    background:radial-gradient(circle at 50% 50%, #fff3da 0%, #ffcf96 45%, #e08a5a 100%); }
+  #veu.ligado{ opacity:1; }
+
+  /* ---------- dentro de um cômodo ---------- */
+  #barra{ position:fixed; left:0; right:0; top:0; z-index:5; padding:max(14px, calc(env(safe-area-inset-top) + 6px)) 14px 0; display:flex; align-items:flex-start; justify-content:space-between; pointer-events:none; opacity:0; transition:opacity 0.6s; }
+  #barra.visivel{ opacity:1; }
+  #barra.visivel > *{ pointer-events:auto; }
+  .pilula{
+    border:1px solid rgba(255,230,240,0.4); border-radius:999px; padding:9px 15px; background:rgba(30,18,26,0.4);
+    -webkit-backdrop-filter:blur(10px); backdrop-filter:blur(10px); font-size:0.78rem; letter-spacing:0.08em; color:var(--creme);
+    box-shadow:0 4px 18px rgba(0,0,0,0.25); transition:transform 0.2s;
+  }
+  .pilula:active{ transform:scale(0.95); }
+  #nomeComodo{ position:fixed; left:0; right:0; top:max(62px, calc(env(safe-area-inset-top) + 54px)); text-align:center; pointer-events:none; z-index:5;
+    font-family:'Cormorant Garamond', Georgia, serif; font-style:italic; font-weight:500; font-size:clamp(1.9rem, 8vw, 2.6rem); text-shadow:var(--sombra); opacity:0; transition:opacity 0.8s; }
+  #nomeComodo.visivel{ opacity:1; }
+  #dicaComodo{ position:fixed; left:0; right:0; bottom:max(22px, calc(env(safe-area-inset-bottom) + 12px)); z-index:5; text-align:center; pointer-events:none;
+    font-family:'Cormorant Garamond', Georgia, serif; font-style:italic; font-size:1.12rem; text-shadow:var(--sombra); opacity:0; transition:opacity 0.8s; padding:0 24px; }
+  #dicaComodo.visivel{ opacity:1; }
+  #levantar{ position:fixed; left:50%; bottom:max(22px, calc(env(safe-area-inset-bottom) + 12px)); z-index:5; transform:translateX(-50%); opacity:0; pointer-events:none; transition:opacity 0.6s; }
+  #levantar.visivel{ opacity:1; pointer-events:auto; }
+
+  /* ---------- camadas por cima (foto, carta, datas, música) ---------- */
+  .camada{ position:fixed; inset:0; z-index:8; display:flex; align-items:center; justify-content:center; padding:max(18px, env(safe-area-inset-top)) 16px max(18px, env(safe-area-inset-bottom));
+    background:rgba(18,10,18,0.62); -webkit-backdrop-filter:blur(6px); backdrop-filter:blur(6px); opacity:0; pointer-events:none; transition:opacity 0.45s ease; }
+  .camada.aberta{ opacity:1; pointer-events:auto; }
+  .fechar{ position:absolute; top:max(14px, calc(env(safe-area-inset-top) + 6px)); right:max(14px, env(safe-area-inset-right)); width:42px; height:42px; border-radius:50%;
+    border:1px solid rgba(255,230,240,0.4); background:rgba(30,18,26,0.45); color:var(--creme); font-size:1.35rem; line-height:1; z-index:2; }
+
+  /* sala: a foto grande */
+  #polaroid{ background:#fffdf8; padding:12px 12px 46px; border-radius:3px; box-shadow:0 24px 60px rgba(0,0,0,0.55); transform:rotate(-1.2deg); transition:transform 0.5s cubic-bezier(.2,.9,.3,1), opacity 0.3s; max-width:min(88vw, 520px); }
+  .camada:not(.aberta) #polaroid{ transform:translateY(30px) rotate(-4deg); }
+  #fotoGrande{ display:block; max-width:100%; max-height:62vh; width:auto; height:auto; }
+  #contaFoto{ margin:12px 0 0; text-align:center; font-family:'Caveat', cursive; font-size:1.4rem; color:#5a3a35; }
+  .seta{ position:absolute; top:50%; margin-top:-24px; width:48px; height:48px; border-radius:50%; border:1px solid rgba(255,230,240,0.4); background:rgba(30,18,26,0.45); color:var(--creme); font-size:1.4rem; }
+  #fotoAntes{ left:max(10px, env(safe-area-inset-left)); }
+  #fotoDepois{ right:max(10px, env(safe-area-inset-right)); }
+
+  /* quarto: a carta */
+  #papel{ position:relative; width:min(92vw, 480px); max-height:80vh; overflow:auto; -webkit-overflow-scrolling:touch; padding:34px 28px 30px; border-radius:4px;
+    background:
+      repeating-linear-gradient(to bottom, transparent 0, transparent 33px, rgba(150,120,170,0.18) 33px, rgba(150,120,170,0.18) 34px),
+      linear-gradient(#fbf5ea, #f4ead6);
+    background-position:0 18px, 0 0;
+    color:#3a2a40; box-shadow:0 24px 70px rgba(0,0,0,0.55); transform:rotate(0.6deg); transition:transform 0.6s cubic-bezier(.2,.9,.3,1);
+    -webkit-user-select:text; user-select:text; }
+  .camada:not(.aberta) #papel{ transform:translateY(60px) rotate(3deg); }
+  #textoCarta{ margin:0; font-family:'Caveat', cursive; font-size:clamp(1.45rem, 6vw, 1.75rem); line-height:34px; white-space:pre-line; }
+  #assinatura{ margin:18px 0 0; text-align:right; font-family:'Caveat', cursive; font-size:1.8rem; color:#8a2c4a; }
+
+  /* cozinha: as datas */
+  #quadroDatas{ width:min(92vw, 460px); max-height:82vh; overflow:auto; -webkit-overflow-scrolling:touch; padding:26px 20px 22px; border-radius:22px; background:rgba(255,250,244,0.96); color:var(--tinta); box-shadow:0 24px 70px rgba(0,0,0,0.5); }
+  #quadroDatas h2{ margin:0; text-align:center; font-family:'Cormorant Garamond', Georgia, serif; font-style:italic; font-weight:500; font-size:1.9rem; }
+  #hojeDatas{ margin:4px 0 18px; text-align:center; font-size:0.72rem; letter-spacing:0.22em; text-transform:uppercase; color:#b0245f; }
+  .bilhete{ position:relative; margin:0 6px 14px; padding:14px 16px 12px; border-radius:3px; box-shadow:0 6px 16px rgba(60,40,30,0.16); }
+  .bilhete:nth-child(odd){ transform:rotate(-0.8deg); }
+  .bilhete:nth-child(even){ transform:rotate(0.7deg); }
+  .bilhete .quando{ margin:0; font-size:0.66rem; letter-spacing:0.22em; text-transform:uppercase; color:rgba(59,40,51,0.6); }
+  .bilhete .oque{ margin:2px 0 0; font-family:'Caveat', cursive; font-size:1.6rem; line-height:1.1; }
+  .bilhete .texto{ margin:4px 0 0; font-family:'Cormorant Garamond', Georgia, serif; font-style:italic; font-size:1.08rem; color:rgba(59,40,51,0.85); }
+  .bilhete.futuro{ opacity:0.7; border:1.5px dashed rgba(176,36,95,0.4); box-shadow:none; background:transparent !important; }
+
+  /* varanda: o tocador */
+  #tocador{ width:min(92vw, 400px); padding:22px 22px 20px; border-radius:26px; background:rgba(28,18,30,0.86); -webkit-backdrop-filter:blur(14px); backdrop-filter:blur(14px); border:1px solid rgba(255,230,240,0.16); box-shadow:0 24px 70px rgba(0,0,0,0.55); text-align:center; }
+  #capaGrande{ display:block; width:min(64vw, 250px); aspect-ratio:1; margin:0 auto; border-radius:10px; object-fit:cover; box-shadow:0 14px 34px rgba(0,0,0,0.5); background:#3a2a36; }
+  #nomeMusica{ margin:16px 0 0; font-family:'Cormorant Garamond', Georgia, serif; font-style:italic; font-weight:500; font-size:1.7rem; line-height:1.1; }
+  #artista{ margin:4px 0 0; font-size:0.7rem; letter-spacing:0.24em; text-transform:uppercase; color:var(--creme-suave); }
+  #trilha{ position:relative; height:24px; margin:14px 2px 0; cursor:pointer; touch-action:none; }
+  #trilha::before{ content:''; position:absolute; left:0; right:0; top:11px; height:3px; border-radius:2px; background:rgba(255,230,240,0.2); }
+  #cheio{ position:absolute; left:0; top:11px; height:3px; border-radius:2px; background:var(--rosa); width:0; }
+  #bolinha{ position:absolute; top:6px; width:13px; height:13px; margin-left:-6px; border-radius:50%; background:#fff; left:0; box-shadow:0 0 10px rgba(255,159,197,0.7); }
+  #tempos{ display:flex; justify-content:space-between; font-size:0.7rem; color:var(--creme-suave); font-variant-numeric:tabular-nums; }
+  #botoesMusica{ display:flex; align-items:center; justify-content:center; gap:22px; margin-top:10px; }
+  .bm{ width:48px; height:48px; border-radius:50%; border:1px solid rgba(255,230,240,0.25); background:rgba(255,255,255,0.06); display:grid; place-items:center; }
+  .bm svg{ width:18px; height:18px; fill:var(--creme); }
+  #play{ width:64px; height:64px; background:rgba(255,159,197,0.22); border-color:rgba(255,159,197,0.6); }
+  #play svg{ width:24px; height:24px; }
+
+  /* tocando em qualquer lugar da casa */
+  #mini{ position:fixed; right:max(14px, env(safe-area-inset-right)); top:max(14px, calc(env(safe-area-inset-top) + 6px)); z-index:7; display:flex; align-items:center; gap:8px; padding:6px 8px 6px 14px; opacity:0; pointer-events:none; transition:opacity 0.5s; }
+  #mini.visivel{ opacity:1; pointer-events:auto; }
+  #mini span{ max-width:40vw; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-family:'Cormorant Garamond', Georgia, serif; font-style:italic; font-size:1rem; letter-spacing:0; }
+  #mini button{ width:30px; height:30px; border-radius:50%; border:0; background:rgba(255,159,197,0.3); display:grid; place-items:center; padding:0; }
+  #mini svg{ width:12px; height:12px; fill:var(--creme); }
+  body.dentro #mini{ top:max(14px, calc(env(safe-area-inset-top) + 6px)); }
+
+  /* ---------- sem 3D ---------- */
+  #simples{ display:none; position:fixed; inset:0; z-index:9; background:linear-gradient(#4a3e86, #ffb0c4); color:var(--creme); text-align:center; padding:max(60px, env(safe-area-inset-top)) 28px; flex-direction:column; align-items:center; justify-content:center; }
+  #simples h1{ margin:0; font-family:'Cormorant Garamond', Georgia, serif; font-style:italic; font-weight:500; font-size:2.6rem; }
+  #simples p{ font-family:'Cormorant Garamond', Georgia, serif; font-style:italic; font-size:1.2rem; max-width:30ch; }
+  body.simples #simples{ display:flex; }
+  body.simples #cena, body.simples #topo, body.simples #rotulos, body.simples #dica, body.simples #barra{ display:none; }
+
+  @media (min-width: 860px) and (orientation: landscape){
+    #topo{ text-align:left; padding-left:max(36px, env(safe-area-inset-left)); padding-top:max(30px, env(safe-area-inset-top)); }
+    #subtitulo{ margin-left:0; }
+  }
+  @media (prefers-reduced-motion: reduce){ #polaroid, #papel{ transition:none; } }
+</style>
+</head>
+<body>
+<canvas id="cena"></canvas>
+
+<header id="topo">
+  <p id="selo">pra Nicolly</p>
+  <h1 id="titulo"></h1>
+  <p id="subtitulo"></p>
+</header>
+
+<div id="rotulos"></div>
+<p id="dica"></p>
+<div id="veu"></div>
+
+<div id="barra">
+  <button class="pilula" id="voltar" type="button">← lá fora</button>
+  <span></span>
+</div>
+<p id="nomeComodo"></p>
+<p id="dicaComodo"></p>
+<button class="pilula" id="levantar" type="button">levantar da cadeira</button>
+
+<div class="camada" id="lightbox" aria-hidden="true">
+  <button class="fechar" type="button" aria-label="fechar">×</button>
+  <button class="seta" id="fotoAntes" type="button" aria-label="foto anterior">‹</button>
+  <figure id="polaroid" style="margin:0"><img id="fotoGrande" alt=""><p id="contaFoto"></p></figure>
+  <button class="seta" id="fotoDepois" type="button" aria-label="próxima foto">›</button>
+</div>
+
+<div class="camada" id="carta" aria-hidden="true">
+  <button class="fechar" type="button" aria-label="fechar">×</button>
+  <div id="papel"><p id="textoCarta"></p><p id="assinatura"></p></div>
+</div>
+
+<div class="camada" id="datas" aria-hidden="true">
+  <button class="fechar" type="button" aria-label="fechar">×</button>
+  <div id="quadroDatas"><h2>as nossas datas</h2><p id="hojeDatas"></p><div id="listaDatas"></div></div>
+</div>
+
+<div class="camada" id="musica" aria-hidden="true">
+  <button class="fechar" type="button" aria-label="fechar">×</button>
+  <div id="tocador">
+    <img id="capaGrande" alt="">
+    <p id="nomeMusica"></p>
+    <p id="artista"></p>
+    <div id="trilha"><div id="cheio"></div><div id="bolinha"></div></div>
+    <div id="tempos"><span id="tempoJa">0:00</span><span id="tempoTotal">0:00</span></div>
+    <div id="botoesMusica">
+      <button class="bm" id="anterior" type="button" aria-label="anterior"><svg viewBox="0 0 24 24"><path d="M6 5h2v14H6zM20 5v14L9 12z"/></svg></button>
+      <button class="bm" id="play" type="button" aria-label="tocar"><svg viewBox="0 0 24 24"><path id="iconePlay" d="M8 5v14l11-7z"/></svg></button>
+      <button class="bm" id="proxima" type="button" aria-label="próxima"><svg viewBox="0 0 24 24"><path d="M16 5h2v14h-2zM4 5v14l11-7z"/></svg></button>
+    </div>
+  </div>
+</div>
+
+<div class="pilula" id="mini"><span id="miniNome"></span><button type="button" id="miniPlay" aria-label="pausar"><svg viewBox="0 0 24 24"><path id="iconeMini" d="M6 5h4v14H6zM14 5h4v14h-4z"/></svg></button></div>
+
+<div id="simples"><h1>a nossa casa</h1><p>esse navegador não conseguiu abrir o 3D agora. tenta abrir de novo pelo Safari, que a casa continua aqui.</p></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="textos.js"></script>
+<script src="base.js"></script>
+<script src="ceu.js"></script>
+<script src="casa.js"></script>
+<script src="comodos.js"></script>
+<script>
+(function(){
+'use strict';
+
+var P = new URLSearchParams(location.search);
+var TESTE = P.get('teste') === '1';
+var movimentoReduzido = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+var $ = function(id){ return document.getElementById(id); };
+try { history.scrollRestoration = 'manual'; } catch(e){}
+
+$('titulo').textContent = TEXTOS.titulo;
+$('subtitulo').textContent = TEXTOS.subtitulo;
+$('dica').textContent = TEXTOS.dica;
+
+function temWebGL(){
+  try { var c = document.createElement('canvas'); return !!(window.WebGLRenderingContext && (c.getContext('webgl') || c.getContext('experimental-webgl'))); } catch(e){ return false; }
+}
+if (!window.THREE || !temWebGL() || P.get('simples') === '1'){ document.body.classList.add('simples'); return; }
+
+/* =====================================================================
+   AS DATAS
+   ===================================================================== */
+var INICIO = new Date(2026, 4, 20);
+var MESES = ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho', 'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'];
+function diaDe(d){ return Math.round((new Date(d.getFullYear(), d.getMonth(), d.getDate()) - INICIO) / 864e5); }
+var HOJE = P.has('dia') ? parseInt(P.get('dia'), 10) : diaDe(new Date());
+if (!(HOJE >= 0)) HOJE = 0;
+var DATA_HOJE = new Date(2026, 4, 20 + HOJE);
+function nomeMeses(m){
+  var a = Math.floor(m / 12), r = m % 12, s = [];
+  if (a) s.push(a === 1 ? '1 ano' : a + ' anos');
+  if (r) s.push(r === 1 ? '1 mês' : r + ' meses');
+  return s.join(' e ');
+}
+function doisDig(n){ return (n < 10 ? '0' : '') + n; }
+
+// mesversários (sozinhos, todo dia 20) + datas especiais, em ordem
+function listaDeDatas(){
+  var out = [];
+  ESPECIAIS.forEach(function(e){
+    var p = e.data.split('-'); var d = new Date(+p[0], +p[1] - 1, +p[2]);
+    out.push({ data: d, titulo: e.titulo, texto: e.texto || '' });
+  });
+  for (var m = 1; m < 1200; m++){
+    var d = new Date(2026, 4 + m, 20);
+    if (d > DATA_HOJE) break;
+    out.push({ data: d, titulo: nomeMeses(m), texto: MESVERSARIOS[m] || '' });
+  }
+  out.sort(function(a, b){ return a.data - b.data; });
+  out.forEach(function(x){ x.curta = doisDig(x.data.getDate()) + '/' + doisDig(x.data.getMonth() + 1); });
+  return out;
+}
+var DATAS = listaDeDatas();
+function proximoMes(){
+  var d = new Date(DATA_HOJE.getFullYear(), DATA_HOJE.getMonth() + (DATA_HOJE.getDate() >= 20 ? 1 : 0), 20);
+  var m = (d.getFullYear() - 2026) * 12 + d.getMonth() - 4;
+  return { data: d, titulo: nomeMeses(m), falta: diaDe(d) - HOJE };
+}
+
+/* =====================================================================
+   O 3D
+   ===================================================================== */
+var celular = Math.min(window.innerWidth, window.innerHeight) < 700;
+var canvas = $('cena');
+var renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true, preserveDrawingBuffer: TESTE, powerPreference: 'high-performance' });
+renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+renderer.outputEncoding = THREE.sRGBEncoding;
+
+var contextoPerdido = false;
+function quedas(n){ try { if (n !== undefined) sessionStorage.setItem('casa-quedas', String(n)); return parseInt(sessionStorage.getItem('casa-quedas') || '0', 10); } catch(e){ return 0; } }
+canvas.addEventListener('webglcontextlost', function(e){
+  e.preventDefault(); contextoPerdido = true;
+  var n = quedas(quedas() + 1);
+  setTimeout(function(){ if (!contextoPerdido) return; if (n <= 1) location.reload(); else virarSimples(); }, 2500);
+}, false);
+canvas.addEventListener('webglcontextrestored', function(){ contextoPerdido = false; if (quedas() <= 1) location.reload(); else virarSimples(); }, false);
+function virarSimples(){ pararMusica(); document.body.classList.add('simples'); }
+
+var fora = new THREE.Scene();
+var camera = new THREE.PerspectiveCamera(50, 1, 0.05, 1200);
+var ceu = criarCeu(fora);
+var casa = criarCasa(fora, celular);
+var fabrica = criarComodos(celular);
+var COMODOS = {};
+function comodo(id){
+  if (COMODOS[id]) return COMODOS[id];
+  if (id === 'sala') COMODOS.sala = fabrica.criarSala();
+  if (id === 'quarto') COMODOS.quarto = fabrica.criarQuarto();
+  if (id === 'cozinha') COMODOS.cozinha = fabrica.criarCozinha(DATAS, { mes: MESES[DATA_HOJE.getMonth()], dia: DATA_HOJE.getDate(), n: HOJE + 1 });
+  if (id === 'varanda') COMODOS.varanda = fabrica.criarVaranda();
+  return COMODOS[id];
+}
+
+function tamanhoDaCena(){ return { w: canvas.clientWidth || window.innerWidth, h: canvas.clientHeight || window.innerHeight }; }
+function eRetrato(){ var t = tamanhoDaCena(); return t.w < t.h; }
+
+/* ---------- câmera de fora: gira em volta da casa ---------- */
+var orb = { yaw: 0, pitch: 0.17, dist: 22, alvo: casa.alvoCamera.clone(), cy: 0.56 };
+var DIST_FORA = 22;
+function distanciaParaCaber(){
+  var vfov = camera.fov * Math.PI / 180, hfov = 2 * Math.atan(Math.tan(vfov / 2) * camera.aspect);
+  var cx = casa.caixaFrente;
+  var d1 = cx.meiaLargura / Math.tan(hfov / 2);
+  var d2 = (cx.topo - cx.base) * 0.62 / Math.tan(vfov / 2);
+  return Math.max(d1, d2) + 4.2;
+}
+function redimensionar(){
+  var t = tamanhoDaCena();
+  renderer.setSize(t.w, t.h, false);
+  camera.aspect = t.w / t.h;
+  if (!comodoAtual) camera.fov = t.w < t.h ? 58 : 42;
+  else camera.fov = t.w < t.h ? 64 : 48;
+  camera.updateProjectionMatrix();
+  ceu.tamanho(t.w, t.h);
+  DIST_FORA = distanciaParaCaber();
+  if (estado === 'fora') orb.dist = DIST_FORA;
+}
+
+function posDaOrbita(o, out){
+  var cp = Math.cos(o.pitch);
+  return out.set(o.alvo.x + o.dist * cp * Math.sin(o.yaw), o.alvo.y + o.dist * Math.sin(o.pitch), o.alvo.z + o.dist * cp * Math.cos(o.yaw));
+}
+var olhar = new V3();
+function enquadrar(cy){
+  var t = tamanhoDaCena();
+  camera.setViewOffset(t.w, t.h, 0, t.h / 2 - cy * t.h, t.w, t.h);
+  camera.updateProjectionMatrix();
+}
+
+/* ---------- animações simples ---------- */
+var TWEENS = [];
+function suaveIO(k){ return k < 0.5 ? 4 * k * k * k : 1 - Math.pow(-2 * k + 2, 3) / 2; }
+function tween(dur, fn, ease){ return new Promise(function(res){ TWEENS.push({ t: 0, dur: dur, fn: fn, ease: ease || suaveIO, res: res }); }); }
+function atualizarTweens(dt){
+  for (var i = TWEENS.length - 1; i >= 0; i--){
+    var tw = TWEENS[i]; tw.t += dt;
+    var k = Math.min(1, tw.t / tw.dur);
+    tw.fn(tw.ease(k));
+    if (k >= 1){ TWEENS.splice(i, 1); tw.res(); }
+  }
+}
+function esperar(s){ return tween(s, function(){}); }
+
+/* =====================================================================
+   A ABERTURA: pôr do sol rosado, a câmera chegando, as luzes acendendo
+   ===================================================================== */
+var estado = 'abertura', comodoAtual = null;
+var abertura = { t: 0, fim: 11.2 };
+var ACENDER = [['lanternas', 5.4], ['sala', 7.0], ['cozinha', 7.6], ['quarto', 8.2], ['varanda', 8.8], ['vagalumes', 9.0]];
+
+function atualizarAbertura(dt){
+  abertura.t += dt;
+  var t = abertura.t;
+  var a = suave(0, 8.6, t);
+  orb.dist = DIST_FORA * misturar(2.1, 1, a * a * (3 - 2 * a));
+  orb.pitch = misturar(0.07, 0.17, a);
+  orb.yaw = misturar(-0.38, 0, suave(0, 9, t));
+  ceu.definir(suave(0.8, 10.2, t));
+  ACENDER.forEach(function(x){ casa.acender(x[0], suave(x[1], x[1] + 0.9, t)); });
+  if (t > 0.6) $('topo').classList.add('visivel');
+  if (t >= abertura.fim) terminarAbertura();
+}
+function terminarAbertura(){
+  if (estado !== 'abertura') return;
+  abertura.t = abertura.fim;
+  ceu.definir(1);
+  ACENDER.forEach(function(x){ casa.acender(x[0], 1); });
+  orb.dist = DIST_FORA; orb.pitch = 0.17; orb.yaw = 0;
+  $('topo').classList.add('visivel');
+  estado = 'fora';
+  mostrarFora(true);
+}
+function mostrarFora(sim){
+  $('rotulos').classList.toggle('visivel', sim);
+  $('dica').classList.toggle('visivel', sim);
+  $('topo').classList.toggle('visivel', sim);
+}
+
+/* ---------- nomes em cima das janelas ---------- */
+var ROTULOS = {};
+[['sala', 'a sala'], ['cozinha', 'a cozinha'], ['quarto', 'o quarto'], ['varanda', 'a varanda']].forEach(function(x){
+  var el = document.createElement('button');
+  el.type = 'button'; el.className = 'rotulo'; el.textContent = x[1];
+  el.addEventListener('click', function(){ entrar(x[0]); });
+  $('rotulos').appendChild(el);
+  var h = casa.hotspots.filter(function(h){ return h.id === x[0] && !h.porta; });
+  var ancora = (x[0] === 'varanda' ? h[h.length - 1] : h[0]).centro.clone();
+  ancora.y += x[0] === 'varanda' ? 1.55 : 1.05;
+  ROTULOS[x[0]] = { el: el, ancora: ancora };
+});
+var _p = new V3();
+function posicionarRotulos(){
+  var t = tamanhoDaCena();
+  camera.updateMatrixWorld();
+  for (var id in ROTULOS){
+    var R = ROTULOS[id];
+    _p.copy(R.ancora).project(camera);
+    var fora = _p.z > 1 || Math.abs(_p.x) > 1.05 || Math.abs(_p.y) > 1.05;
+    R.el.classList.toggle('longe', fora);
+    R.el.style.transform = 'translate(' + ((_p.x * 0.5 + 0.5) * t.w).toFixed(1) + 'px,' + ((-_p.y * 0.5 + 0.5) * t.h).toFixed(1) + 'px) translate(-50%, -100%)';
+  }
+}
+
+/* =====================================================================
+   ENTRAR E SAIR DOS CÔMODOS
+   ===================================================================== */
+var camLivre = { pos: new V3(), alvo: new V3() };   // usado nas transições
+var olharDentro = { yaw: 0, pitch: 0, vy: 0 };
+var hotspotDaEntrada = null;
+
+function entrar(id, h){
+  if (estado !== 'fora') return;
+  if (!h) h = casa.hotspots.filter(function(x){ return x.id === id && !x.porta; }).slice(-1)[0];
+  hotspotDaEntrada = h;
+  estado = 'entrando';
+  mostrarFora(false);
+  if (id === 'sala') carregarFotos();
+  if (id === 'varanda') carregarCapas();
+  var de = camera.position.clone(), olhoDe = olhar.clone();
+  var para = h.centro.clone().add(new V3(0, 0.05, id === 'varanda' ? 1.9 : 1.35)), olhoPara = h.centro.clone();
+  var cy0 = orb.cy;
+  tween(1.15, function(k){
+    camLivre.pos.lerpVectors(de, para, k);
+    camLivre.alvo.lerpVectors(olhoDe, olhoPara, k);
+    orb.cy = misturar(cy0, 0.5, k);
+  }, function(k){ return k * k * (3 - 2 * k); });
+  setTimeout(function(){ $('veu').classList.add('ligado'); }, TESTE ? 0 : 620);
+  esperar(1.2).then(function(){ dentroDe(id); });
+}
+
+function dentroDe(id){
+  mostrarFora(false);
+  comodoAtual = comodo(id);
+  document.body.classList.add('dentro');
+  redimensionar();
+  olharDentro.yaw = 0; olharDentro.pitch = 0;
+  var c = comodoAtual.cam;
+  var recuo = c.pos.clone().sub(c.alvo).normalize().multiplyScalar(0.9);
+  camLivre.pos.copy(c.pos).add(recuo);
+  camLivre.alvo.copy(c.alvo);
+  estado = 'dentro';
+  tween(1.6, function(k){ camLivre.pos.copy(c.pos).addScaledVector(recuo, 1 - k); }, function(k){ return 1 - Math.pow(1 - k, 3); });
+  $('veu').classList.remove('ligado');
+  $('nomeComodo').textContent = TEXTOS[id].titulo;
+  $('dicaComodo').textContent = TEXTOS[id].dica;
+  setTimeout(function(){
+    $('barra').classList.add('visivel');
+    $('nomeComodo').classList.add('visivel');
+    $('dicaComodo').classList.add('visivel');
+  }, TESTE ? 0 : 350);
+  setTimeout(function(){ $('nomeComodo').classList.remove('visivel'); }, 3800);
+  if (id === 'varanda' && COMODOS.varanda) COMODOS.varanda.tocar(!audio.paused);
+}
+
+function sair(){
+  if (estado !== 'dentro') return;
+  fecharCamadas();
+  if (sentado){ sentado = false; $('levantar').classList.remove('visivel'); if (comodoAtual && comodoAtual.sentado) comodoAtual.sentado(false); }
+  estado = 'saindo';
+  $('barra').classList.remove('visivel');
+  $('nomeComodo').classList.remove('visivel');
+  $('dicaComodo').classList.remove('visivel');
+  $('veu').classList.add('ligado');
+  esperar(TESTE ? 0.01 : 0.55).then(function(){
+    comodoAtual = null;
+    document.body.classList.remove('dentro');
+    redimensionar();
+    var h = hotspotDaEntrada;
+    var de = h.centro.clone().add(new V3(0, 0.05, h.id === 'varanda' ? 1.9 : 1.35)), olhoDe = h.centro.clone();
+    camLivre.pos.copy(de); camLivre.alvo.copy(olhoDe);
+    $('veu').classList.remove('ligado');
+    var para = posDaOrbita(orb, new V3());
+    tween(1.5, function(k){
+      camLivre.pos.lerpVectors(de, posDaOrbita(orb, para), k);
+      camLivre.alvo.lerpVectors(olhoDe, orb.alvo, k);
+      orb.cy = misturar(0.5, 0.56, k);
+    }).then(function(){ estado = 'fora'; mostrarFora(true); });
+  });
+}
+$('voltar').addEventListener('click', sair);
+
+/* ---------- varanda: sentar na cadeira e olhar o céu ---------- */
+var sentado = false;
+function sentar(lugar){
+  if (sentado || estado !== 'dentro') return;
+  sentado = true;
+  var de = camLivre.pos.clone(), deA = camLivre.alvo.clone();
+  olharDentro.yaw = 0; olharDentro.pitch = 0;
+  $('dicaComodo').classList.remove('visivel');
+  $('nomeComodo').textContent = TEXTOS.varanda.ceu;
+  $('nomeComodo').classList.add('visivel');
+  setTimeout(function(){ if (sentado) $('nomeComodo').classList.remove('visivel'); }, 4500);
+  $('levantar').classList.add('visivel');
+  if (comodoAtual.sentado) comodoAtual.sentado(true);
+  tween(2.4, function(k){ camLivre.pos.lerpVectors(de, lugar.pos, k); camLivre.alvo.lerpVectors(deA, lugar.alvo, k); });
+}
+function levantar(){
+  if (!sentado || !comodoAtual) return;
+  sentado = false;
+  $('levantar').classList.remove('visivel');
+  $('nomeComodo').classList.remove('visivel');
+  if (comodoAtual.sentado) comodoAtual.sentado(false);
+  var de = camLivre.pos.clone(), deA = camLivre.alvo.clone(), c = comodoAtual.cam;
+  olharDentro.yaw = 0; olharDentro.pitch = 0;
+  tween(1.8, function(k){ camLivre.pos.lerpVectors(de, c.pos, k); camLivre.alvo.lerpVectors(deA, c.alvo, k); }).then(function(){
+    if (estado === 'dentro') $('dicaComodo').classList.add('visivel');
+  });
+}
+$('levantar').addEventListener('click', levantar);
+
+/* ---------- as fotos e as capas só carregam quando precisa ---------- */
+var scripts = {};
+function carregarScript(src, pronto){
+  if (scripts[src] === 'ok'){ pronto(); return; }
+  if (scripts[src]){ scripts[src].push(pronto); return; }
+  scripts[src] = [pronto];
+  var s = document.createElement('script');
+  s.src = src;
+  s.onload = function(){ var fila = scripts[src]; scripts[src] = 'ok'; fila.forEach(function(f){ f(); }); };
+  s.onerror = function(){ delete scripts[src]; };
+  document.head.appendChild(s);
+}
+var FOTOS = [];
+function carregarFotos(){
+  carregarScript('fotos.js', function(){
+    FOTOS = Object.keys(window.FOTOS_CASA || {}).map(function(k){ return FOTOS_CASA[k]; });
+    var s = comodo('sala');
+    if (!s.fotosPostas){ s.fotosPostas = true; s.colocarFotos(FOTOS); }
+  });
+}
+function carregarCapas(){
+  carregarScript('capas.js', function(){
+    var v = comodo('varanda');
+    if (!v.capasPostas){ v.capasPostas = true; v.colocarCapas(window.CAPAS || {}, MUSICAS.map(function(m){ return m.id; })); v.rotuloDe((window.CAPAS || {})[MUSICAS[faixa].id]); }
+    mostrarFaixa();
+  });
+}
+
+/* =====================================================================
+   AS CAMADAS: foto, carta, datas, música
+   ===================================================================== */
+function abrirCamada(id){ var el = $(id); el.classList.add('aberta'); el.setAttribute('aria-hidden', 'false'); $('dicaComodo').classList.remove('visivel'); }
+function fecharCamadas(){
+  ['lightbox', 'carta', 'datas', 'musica'].forEach(function(id){ var el = $(id); el.classList.remove('aberta'); el.setAttribute('aria-hidden', 'true'); });
+  atualizarMini();
+}
+Array.prototype.forEach.call(document.querySelectorAll('.camada'), function(c){
+  c.addEventListener('click', function(e){ if (e.target === c) fecharCamadas(); });
+  c.querySelector('.fechar').addEventListener('click', fecharCamadas);
+});
+document.addEventListener('keydown', function(e){
+  if (e.key === 'Escape'){ if (document.querySelector('.camada.aberta')) fecharCamadas(); else if (estado === 'dentro') sair(); }
+  if ($('lightbox').classList.contains('aberta')){ if (e.key === 'ArrowLeft') mudarFoto(-1); if (e.key === 'ArrowRight') mudarFoto(1); }
+});
+
+// sala
+var fotoAtual = 0;
+function abrirFoto(i){
+  if (!FOTOS.length) return;
+  fotoAtual = i % FOTOS.length;
+  mostrarFoto();
+  abrirCamada('lightbox');
+}
+function mostrarFoto(){ $('fotoGrande').src = FOTOS[fotoAtual]; $('contaFoto').textContent = (fotoAtual + 1) + ' de ' + FOTOS.length; }
+function mudarFoto(d){ fotoAtual = (fotoAtual + d + FOTOS.length) % FOTOS.length; mostrarFoto(); }
+$('fotoAntes').addEventListener('click', function(){ mudarFoto(-1); });
+$('fotoDepois').addEventListener('click', function(){ mudarFoto(1); });
+(function(){
+  var x0 = null;
+  $('lightbox').addEventListener('touchstart', function(e){ x0 = e.touches[0].clientX; }, { passive: true });
+  $('lightbox').addEventListener('touchend', function(e){ if (x0 === null) return; var dx = e.changedTouches[0].clientX - x0; if (Math.abs(dx) > 40) mudarFoto(dx < 0 ? 1 : -1); x0 = null; });
+})();
+
+// quarto
+$('textoCarta').textContent = TEXTOS.carta;
+$('assinatura').textContent = TEXTOS.assinatura;
+
+// cozinha
+(function(){
+  var p = proximoMes();
+  $('hojeDatas').textContent = 'hoje é o dia ' + (HOJE + 1) + ' de nós';
+  var CORES = ['#fff3a8', '#ffd6e0', '#d6f0ff', '#e2f7d4', '#ffe1c2'];
+  var html = DATAS.slice().reverse().map(function(d, i){
+    return '<div class="bilhete" style="background:' + CORES[i % CORES.length] + '"><p class="quando">' + d.data.getDate() + ' de ' + MESES[d.data.getMonth()] + ' de ' + d.data.getFullYear() + '</p>' +
+      '<p class="oque">' + d.titulo + '</p>' + (d.texto ? '<p class="texto">' + d.texto + '</p>' : '') + '</div>';
+  }).join('');
+  html = '<div class="bilhete futuro"><p class="quando">' + (p.falta === 1 ? 'amanhã' : 'daqui a ' + p.falta + ' dias') + ' · ' + p.data.getDate() + ' de ' + MESES[p.data.getMonth()] + '</p><p class="oque">' + p.titulo + '</p></div>' + html;
+  $('listaDatas').innerHTML = html;
+})();
+
+// varanda: a música
+var audio = new Audio();
+audio.preload = 'none';
+audio.setAttribute('playsinline', '');
+try { if (navigator.audioSession) navigator.audioSession.type = 'playback'; } catch(e){}
+var faixa = 0;
+function fmt(s){ if (!isFinite(s)) return '0:00'; s = Math.max(0, Math.floor(s)); return Math.floor(s / 60) + ':' + doisDig(s % 60); }
+function mostrarFaixa(){
+  var m = MUSICAS[faixa];
+  $('nomeMusica').textContent = m.titulo;
+  $('artista').textContent = m.artista;
+  var capas = window.CAPAS || {};
+  if (capas[m.id]) $('capaGrande').src = capas[m.id];
+  $('miniNome').textContent = m.titulo;
+}
+function tocarFaixa(i){
+  faixa = (i + MUSICAS.length) % MUSICAS.length;
+  var m = MUSICAS[faixa];
+  audio.src = 'musicas/' + m.id + '.mp3';
+  mostrarFaixa();
+  var capas = window.CAPAS || {};
+  if (COMODOS.varanda && capas[m.id]) COMODOS.varanda.rotuloDe(capas[m.id]);
+  var pr = audio.play(); if (pr && pr.catch) pr.catch(function(){});
+  if ('mediaSession' in navigator){
+    try {
+      navigator.mediaSession.metadata = new MediaMetadata({ title: m.titulo, artist: m.artista, album: 'a nossa casa', artwork: capas[m.id] ? [{ src: capas[m.id], sizes: '400x400', type: 'image/jpeg' }] : [] });
+      navigator.mediaSession.setActionHandler('previoustrack', function(){ tocarFaixa(faixa - 1); });
+      navigator.mediaSession.setActionHandler('nexttrack', function(){ tocarFaixa(faixa + 1); });
+    } catch(e){}
+  }
+}
+function alternar(){
+  if (!audio.src){ tocarFaixa(faixa); return; }
+  if (audio.paused){ var pr = audio.play(); if (pr && pr.catch) pr.catch(function(){}); } else audio.pause();
+}
+function pararMusica(){ try { audio.pause(); } catch(e){} }
+var PLAY = 'M8 5v14l11-7z', PAUSA = 'M6 5h4v14H6zM14 5h4v14h-4z';
+function atualizarBotoes(){
+  var tocando = !audio.paused;
+  $('iconePlay').setAttribute('d', tocando ? PAUSA : PLAY);
+  $('iconeMini').setAttribute('d', tocando ? PAUSA : PLAY);
+  if (COMODOS.varanda) COMODOS.varanda.tocar(tocando);
+  atualizarMini();
+}
+function atualizarMini(){
+  var aberto = $('musica').classList.contains('aberta');
+  $('mini').classList.toggle('visivel', !!audio.src && !aberto && estado !== 'abertura');
+}
+audio.addEventListener('play', atualizarBotoes);
+audio.addEventListener('pause', atualizarBotoes);
+audio.addEventListener('ended', function(){ tocarFaixa(faixa + 1); });
+audio.addEventListener('timeupdate', function(){
+  var d = audio.duration || 0, p = d ? audio.currentTime / d : 0;
+  $('cheio').style.width = (p * 100) + '%';
+  $('bolinha').style.left = (p * 100) + '%';
+  $('tempoJa').textContent = fmt(audio.currentTime);
+  $('tempoTotal').textContent = fmt(d);
+});
+$('play').addEventListener('click', alternar);
+$('anterior').addEventListener('click', function(){ tocarFaixa(faixa - 1); });
+$('proxima').addEventListener('click', function(){ tocarFaixa(faixa + 1); });
+$('miniPlay').addEventListener('click', alternar);
+(function(){
+  var tr = $('trilha'), arrastando = false;
+  function ir(e){ var r = tr.getBoundingClientRect(); var p = Math.max(0, Math.min(1, (e.clientX - r.left) / r.width)); if (audio.duration) audio.currentTime = p * audio.duration; }
+  tr.addEventListener('pointerdown', function(e){ arrastando = true; try { tr.setPointerCapture(e.pointerId); } catch(er){} ir(e); });
+  tr.addEventListener('pointermove', function(e){ if (arrastando) ir(e); });
+  tr.addEventListener('pointerup', function(){ arrastando = false; });
+})();
+function abrirMusica(){
+  carregarCapas();
+  mostrarFaixa();
+  abrirCamada('musica');
+  atualizarMini();
+  if (!audio.src) tocarFaixa(faixa);
+}
+
+/* =====================================================================
+   DEDO E MOUSE
+   ===================================================================== */
+var raio = new THREE.Raycaster(), ponto = new THREE.Vector2();
+var toque = null, ultimoMov = 0;
+
+canvas.addEventListener('pointerdown', function(e){
+  try { canvas.setPointerCapture(e.pointerId); } catch(er){}
+  toque = { x0: e.clientX, y0: e.clientY, x: e.clientX, y: e.clientY, t0: performance.now(), moveu: false };
+  ultimoMov = relogio;
+});
+canvas.addEventListener('pointermove', function(e){
+  if (!toque) return;
+  var dx = e.clientX - toque.x, dy = e.clientY - toque.y;
+  toque.x = e.clientX; toque.y = e.clientY;
+  if (!toque.moveu && Math.hypot(e.clientX - toque.x0, e.clientY - toque.y0) > 8) toque.moveu = true;
+  if (!toque.moveu) return;
+  var k = 3.0 / Math.max(320, tamanhoDaCena().w);
+  if (estado === 'fora'){
+    orb.yaw = Math.max(-0.6, Math.min(0.6, orb.yaw - dx * k));
+    orb.pitch = Math.max(0.05, Math.min(0.5, orb.pitch + dy * k * 0.6));
+  } else if (estado === 'dentro'){
+    var lY = sentado ? 0.9 : 0.5, lP = sentado ? 0.45 : 0.18;
+    olharDentro.yaw = Math.max(-lY, Math.min(lY, olharDentro.yaw - dx * k * 0.8));
+    olharDentro.pitch = Math.max(-lP, Math.min(lP, olharDentro.pitch + dy * k * 0.5));
+  }
+  ultimoMov = relogio;
+});
+function soltar(e){
+  if (!toque) return;
+  var t = toque; toque = null;
+  if (e.type === 'pointercancel' || t.moveu || performance.now() - t.t0 > 600) return;
+  tocou(e.clientX, e.clientY);
+}
+canvas.addEventListener('pointerup', soltar);
+canvas.addEventListener('pointercancel', soltar);
+document.addEventListener('gesturestart', function(e){ e.preventDefault(); });
+
+function raioEm(x, y){
+  var t = tamanhoDaCena();
+  ponto.set((x / t.w) * 2 - 1, -(y / t.h) * 2 + 1);
+  raio.setFromCamera(ponto, camera);
+}
+function tocou(x, y){
+  if (estado === 'abertura'){ terminarAbertura(); return; }
+  if (estado === 'fora'){
+    raioEm(x, y);
+    var hits = raio.intersectObjects(casa.hotspots.map(function(h){ return h.alvo; }), false);
+    if (!hits.length) return;
+    var h = casa.hotspots.filter(function(h){ return h.alvo === hits[0].object; })[0];
+    if (h) entrar(h.id, h);
+    return;
+  }
+  if (estado === 'dentro' && comodoAtual){
+    raioEm(x, y);
+    var cl = comodoAtual.clicaveis;
+    var hits2 = raio.intersectObjects(cl.map(function(c){ return c.obj; }), true);
+    if (!hits2.length) return;
+    var o = hits2[0].object, alvo = null;
+    while (o && !alvo){ for (var i = 0; i < cl.length; i++) if (cl[i].obj === o){ alvo = cl[i]; break; } o = o.parent; }
+    if (!alvo) return;
+    if (alvo.acao === 'foto') abrirFoto(alvo.indice);
+    if (alvo.acao === 'carta') abrirCamada('carta');
+    if (alvo.acao === 'datas') abrirCamada('datas');
+    if (alvo.acao === 'musica') abrirMusica();
+    if (alvo.acao === 'ceu') sentar(alvo.sentar);
+  }
+}
+
+/* =====================================================================
+   O LAÇO
+   ===================================================================== */
+var relogio = 0;
+function quadro(dt){
+  relogio += dt;
+  atualizarTweens(dt);
+  if (estado === 'abertura') atualizarAbertura(dt);
+
+  if (estado === 'abertura' || estado === 'fora'){
+    // depois de um tempo parada, a câmera volta devagar pro meio
+    if (estado === 'fora' && !toque && relogio - ultimoMov > 5){
+      orb.yaw += (Math.sin(relogio * 0.12) * 0.12 - orb.yaw) * Math.min(1, dt * 0.4);
+      orb.pitch += (0.17 - orb.pitch) * Math.min(1, dt * 0.4);
+    }
+    posDaOrbita(orb, camera.position);
+    olhar.copy(orb.alvo);
+    camera.lookAt(olhar);
+  } else if (estado === 'entrando' || estado === 'saindo'){
+    camera.position.copy(camLivre.pos);
+    olhar.copy(camLivre.alvo);
+    camera.lookAt(olhar);
+  } else if (estado === 'dentro'){
+    if (!toque && relogio - ultimoMov > 4){
+      olharDentro.yaw += (Math.sin(relogio * 0.15) * 0.08 - olharDentro.yaw) * Math.min(1, dt * 0.5);
+      olharDentro.pitch += (0 - olharDentro.pitch) * Math.min(1, dt * 0.5);
+    }
+    camera.position.copy(camLivre.pos);
+    var dir = camLivre.alvo.clone().sub(camLivre.pos);
+    dir.applyAxisAngle(new V3(0, 1, 0), olharDentro.yaw);
+    var lado = new V3().crossVectors(dir, new V3(0, 1, 0)).normalize();
+    dir.applyAxisAngle(lado, olharDentro.pitch);
+    olhar.copy(camLivre.pos).add(dir);
+    camera.lookAt(olhar);
+  }
+
+  if (comodoAtual){
+    enquadrar(0.5);
+    comodoAtual.atualizar(dt, relogio, camera);
+    renderer.render(comodoAtual.scene, camera);
+  } else {
+    enquadrar(orb.cy);
+    ceu.atualizar(dt, camera);
+    casa.atualizar(dt, ceu);
+    posicionarRotulos();
+    renderer.render(fora, camera);
+  }
+}
+
+redimensionar();
+window.addEventListener('resize', function(){ redimensionar(); if (TESTE) quadro(0); });
+
+if (P.get('intro') === '0') terminarAbertura();
+
+if (TESTE){
+  window.__casa = {
+    quadro: quadro, camera: camera, renderer: renderer, orb: orb, ceu: ceu, casa: casa, cena: fora,
+    abertura: function(t){ estado = 'abertura'; abertura.t = 0; atualizarAbertura(t); quadro(0); },
+    entrarJa: function(id){ terminarAbertura(); var h = casa.hotspots.filter(function(x){ return x.id === id && !x.porta; }).slice(-1)[0]; hotspotDaEntrada = h; if (id === 'sala') carregarFotos(); if (id === 'varanda') carregarCapas(); dentroDe(id); for (var i = 0; i < 30; i++) quadro(0.06); },
+    entrar: entrar, sair: sair, abrirFoto: abrirFoto, abrirMusica: abrirMusica, comodoAtual: function(){ return comodoAtual; },
+    sentar: function(i){ var c = comodoAtual.clicaveis.filter(function(x){ return x.acao === 'ceu'; })[i || 0]; sentar(c.sentar); for (var q = 0; q < 50; q++) quadro(0.06); },
+    abrir: function(id){ abrirCamada(id); }
+  };
+  if (P.has('t')) window.__casa.abertura(parseFloat(P.get('t')));
+  if (P.has('comodo')) window.__casa.entrarJa(P.get('comodo'));
+  quadro(0.016);
+} else {
+  var qualidade = { dpr: renderer.getPixelRatio(), soma: 0, n: 0, espera: 2 };
+  var vigiar = function(dt){
+    if (document.hidden || dt > 0.25) return;
+    if (qualidade.espera > 0){ qualidade.espera -= dt; return; }
+    qualidade.soma += dt; qualidade.n++;
+    if (qualidade.soma < 2) return;
+    var media = qualidade.soma / qualidade.n;
+    qualidade.soma = 0; qualidade.n = 0;
+    if (media > 1 / 40 && qualidade.dpr > 0.6){
+      qualidade.dpr = Math.max(0.6, qualidade.dpr * 0.78);
+      renderer.setPixelRatio(qualidade.dpr);
+      redimensionar();
+      qualidade.espera = 1;
+      if (qualidade.dpr < 0.85 && !qualidade.aliviou){ qualidade.aliviou = true; casa.aliviar(); }
+    }
+  };
+  var antes = performance.now();
+  (function laco(agora){
+    var real = Math.max(0, (agora - antes) / 1000);
+    antes = agora;
+    if (contextoPerdido || document.body.classList.contains('simples')) return;
+    vigiar(real);
+    quadro(Math.min(0.05, real));
+    requestAnimationFrame(laco);
+  })(antes);
+}
+
+})();
+</script>
+</body>
+</html>
